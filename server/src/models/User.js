@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from "bcrypt";
 const UserSchema = new mongoose.Schema({
   username:     { type: String, required: true },
   email:    { type: String, required: true, unique: true },
@@ -12,7 +13,7 @@ UserSchema.pre("save", async function(next){
      next();
 });
 
-UserSchema.methods.matchPassword = async function(eneterPassword){
-   return await bcrypt.compare(eneterPassword, this.password);
+UserSchema.methods.matchPassword = async function(enterPassword){
+   return await bcrypt.compare(enterPassword, this.password);
 }
 export default mongoose.model('User', UserSchema);
