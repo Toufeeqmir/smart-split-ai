@@ -7,6 +7,7 @@ export const sendMessage = async (req, res) => {
     const { message, conversationId } = req.body;
     const trimmedMessage = message?.trim();
 
+    //Trim: removes extraspace fro end and starting of the string
     if (!trimmedMessage || !conversationId) {
       return res
         .status(400)

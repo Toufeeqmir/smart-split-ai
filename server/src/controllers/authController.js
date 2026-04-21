@@ -3,7 +3,7 @@ import generateToken from "../utils/generateToken.js";
 
 // REGISTER
 export const register = async (req, res) => {
-  const { username, email, password } = req.body; // ✅ correct
+  const { username, email, password } = req.body; //  correct
 
   try {
     const userExist = await User.findOne({ email });
@@ -14,7 +14,7 @@ export const register = async (req, res) => {
 
     const user = await User.create({ username, email, password });
 
-    const token = generateToken(user._id); // ✅ fixed
+    const token = generateToken(user._id); // fixed
 
     res.status(201).json({
       _id: user._id,
@@ -45,7 +45,7 @@ export const login = async (req, res) => {
     }
 
     // compare password
-    const isMatch = await user.matchPassword(password); // ✅ important
+    const isMatch = await user.matchPassword(password); //  important
 
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -86,11 +86,11 @@ export const listUsers = async (req, res) => {
   try {
     const search = req.query.search?.trim();
     const query = {
-      _id: { $ne: req.user._id },
+      _id: { $ne: req.user._id }, //$ne => not equal : mogodb query operator 
     };
 
     if (search) {
-      query.username = { $regex: search, $options: "i" };
+      query.username = { $regex: search, $options: "i" };  // %regex: find users finding the pattern(lets to find the text)
     }
 
     const users = await User.find(query)
