@@ -1,12 +1,30 @@
 import Conversation from "../models/conversation.js";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
+import { getOnlineMembers } from "../sockets/chatSocket.js";
 
 const formatConversation = async (conversation, currentUsername) => {
   const plainConversation =
     typeof conversation.toObject === "function"
       ? conversation.toObject()
       : conversation;
+
+  const members = await User.find({
+    username: { $in: plainConversation.members },
+  })
+    .select("username email avatar")
+    .lean();
+
+  const memberMap = new Map(
+    members.map((member) => [
+      member.username,
+      {
+        username: member.username,
+        email: member.email,
+        avatar: member.avatar || "",
+      },
+    ])
+  );
 
   const lastMessage = await Message.findOne({
     conversationId: plainConversation._id,
@@ -16,19 +34,38 @@ const formatConversation = async (conversation, currentUsername) => {
 
   const otherUser =
     plainConversation.members.find((member) => member !== currentUsername) || null;
+  const otherMember = otherUser
+    ? memberMap.get(otherUser) || {
+        username: otherUser,
+        email: "",
+        avatar: "",
+      }
+    : null;
 
   return {
     ...plainConversation,
     otherUser,
+    otherMember,
+    avatar: plainConversation.isGroup ? "" : otherMember?.avatar || "",
+    memberProfiles: plainConversation.members.map(
+      (member) =>
+        memberMap.get(member) || {
+          username: member,
+          email: "",
+          avatar: "",
+        }
+    ),
     displayName: plainConversation.isGroup
       ? plainConversation.name
-      : otherUser || "Direct chat",
+      : otherMember?.username || otherUser || "Direct chat",
+    onlineUsers: getOnlineMembers(plainConversation),
     lastMessage: lastMessage
       ? {
           _id: lastMessage._id,
           sender: lastMessage.sender,
           message: lastMessage.message,
           createdAt: lastMessage.createdAt,
+          seenBy: lastMessage.seenBy || [],
         }
       : null,
   };
@@ -86,6 +123,9 @@ export const createGroupConversation = async (req, res) => {
       members: uniqueMembers,
       isGroup: true,
     });
+
+    console.log("BODY", req.body);
+    console.log("MEMBERS", members);
 
     res.status(201).json(await formatConversation(group, req.user.username));
   } catch (err) {

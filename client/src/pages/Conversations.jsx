@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import Avatar, { getInitials } from "../components/Avatar";
 
 const formatConversationTime = (value) => {
   if (!value) return "";
@@ -11,14 +12,6 @@ const formatConversationTime = (value) => {
   });
 };
 
-const getInitials = (name = "") =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "?";
-
 export default function Conversations() {
   const [conversations, setConversations] = useState([]);
   const [users, setUsers] = useState([]);
@@ -26,12 +19,23 @@ export default function Conversations() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [startingChatWith, setStartingChatWith] = useState("");
+  const [user, setUser] = useState(
+    () => JSON.parse(localStorage.getItem("user") || "null")
+  );
 
   const navigate = useNavigate();
-  const user = useMemo(
-    () => JSON.parse(localStorage.getItem("user") || "null"),
-    []
-  );
+
+  useEffect(() => {
+    const syncUser = () => {
+      setUser(JSON.parse(localStorage.getItem("user") || "null"));
+    };
+
+    window.addEventListener("user-updated", syncUser);
+
+    return () => {
+      window.removeEventListener("user-updated", syncUser);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -130,9 +134,12 @@ export default function Conversations() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">
                 Active user
               </p>
-              <p className="mt-2 text-2xl font-semibold">
-                {user?.username || "Guest"}
-              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <Avatar name={user?.username || "Guest"} src={user?.avatar} />
+                <p className="text-2xl font-semibold">
+                  {user?.username || "Guest"}
+                </p>
+              </div>
             </div>
             <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
               <p className="soft-label">Users</p>
@@ -184,9 +191,7 @@ export default function Conversations() {
                   className="w-full rounded-[22px] border border-slate-100 bg-white px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-brand-teal/30 hover:bg-brand-teal/5 disabled:opacity-60"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-teal/10 font-semibold text-brand-teal">
-                      {getInitials(person.username)}
-                    </div>
+                    <Avatar name={person.username} src={person.avatar} />
                     <div className="min-w-0">
                       <p className="truncate font-medium text-slate-900">
                         {person.username}
@@ -245,8 +250,18 @@ export default function Conversations() {
                   className="w-full rounded-[24px] border border-slate-100 bg-white px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand-teal/25 hover:shadow-soft"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 font-semibold text-slate-700">
-                      {getInitials(conversation.displayName)}
+                    <div className="relative shrink-0">
+                      <Avatar
+                        name={conversation.displayName}
+                        src={conversation.avatar}
+                      />
+                      {!conversation.isGroup &&
+                        conversation.otherMember?.username &&
+                        conversation.onlineUsers?.includes(
+                          conversation.otherMember.username
+                        ) && (
+                          <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+                        )}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -266,7 +281,7 @@ export default function Conversations() {
                           ? `${conversation.lastMessage.sender}: ${conversation.lastMessage.message}`
                           : conversation.isGroup
                             ? `${conversation.members.length} members`
-                            : "Tap to start chatting"}
+                            : `Chat with @${conversation.otherMember?.username || getInitials(conversation.displayName)}`}
                       </p>
                     </div>
                   </div>

@@ -83,13 +83,13 @@ function AppLayout() {
       <div className="relative z-10 min-h-screen">
         <Navbar isAuthPage={isAuthPage} />
 
-        <div className="mx-auto w-full max-w-[1440px] px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1440px] px-4 pb-8 pt-6 sm:px-6 lg:px-8">
           {isAuthPage ? (
             <main className="animate-fade-up py-4">{routes}</main>
           ) : (
             <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
               <Sidebar />
-              <main className="min-w-0 animate-fade-up">{routes}</main>
+              <main className="min-w-0 animate-fade-up pt-1">{routes}</main>
             </div>
           )}
         </div>

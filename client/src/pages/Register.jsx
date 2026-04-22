@@ -1,7 +1,8 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import Avatar from "../components/Avatar";
+import { fileToProfileDataUrl } from "../utils/profileImage";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -9,12 +10,29 @@ export default function Register() {
     username: "",
     email: "",
     password: "",
+    avatar: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const avatar = await fileToProfileDataUrl(file);
+      setFormData((prev) => ({ ...prev, avatar }));
+      setError("");
+    } catch (err) {
+      setError(err.message || "Could not process the profile photo.");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -31,6 +49,7 @@ export default function Register() {
           _id: data._id,
           username: data.username,
           email: data.email,
+          avatar: data.avatar,
         })
       );
       navigate("/");
@@ -52,6 +71,38 @@ export default function Register() {
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="avatar" className="soft-label">
+                Profile Photo
+              </label>
+              <div className="flex items-center gap-4 rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-4">
+                <Avatar
+                  name={formData.username || "New user"}
+                  src={formData.avatar}
+                  size="lg"
+                />
+                <div className="min-w-0 flex-1">
+                  <label
+                    htmlFor="avatar"
+                    className="inline-flex cursor-pointer items-center justify-center rounded-2xl bg-brand-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-slate"
+                  >
+                    Upload photo
+                  </label>
+                  <input
+                    id="avatar"
+                    name="avatar"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">
+                    Optional, but this photo will appear in chats and the navbar.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label htmlFor="username" className="soft-label">
                 Username

@@ -1,9 +1,37 @@
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 
+const MAX_AVATAR_LENGTH = 1_500_000;
+
+const normalizeAvatar = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  if (!trimmedValue.startsWith("data:image/")) {
+    return null;
+  }
+
+  if (trimmedValue.length > MAX_AVATAR_LENGTH) {
+    return null;
+  }
+
+  return trimmedValue;
+};
+
 // REGISTER
 export const register = async (req, res) => {
-  const { username, email, password } = req.body; //  correct
+  const { username, email, password, avatar } = req.body; //  correct
 
   try {
     const userExist = await User.findOne({ email });
@@ -12,7 +40,18 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = await User.create({ username, email, password });
+    const normalizedAvatar = normalizeAvatar(avatar);
+
+    if (normalizedAvatar === null) {
+      return res.status(400).json({ message: "Please upload a valid profile photo." });
+    }
+
+    const user = await User.create({
+      username: username?.trim(),
+      email: email?.trim().toLowerCase(),
+      password,
+      avatar: normalizedAvatar,
+    });
 
     const token = generateToken(user._id); // fixed
 
@@ -20,6 +59,7 @@ export const register = async (req, res) => {
       _id: user._id,
       username: user.username,
       email: user.email,
+      avatar: user.avatar,
       token,
     });
   } catch (error) {
@@ -59,6 +99,7 @@ export const login = async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
@@ -81,6 +122,38 @@ export const getMe = async (req, res) => {
   }
 };
 
+export const updateMe = async (req, res) => {
+  try {
+    const normalizedAvatar = normalizeAvatar(req.body.avatar);
+
+    if (normalizedAvatar === null) {
+      return res.status(400).json({ message: "Please upload a valid profile photo." });
+    }
+
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.avatar = normalizedAvatar;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated",
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // LIST USERS
 export const listUsers = async (req, res) => {
   try {
@@ -94,7 +167,7 @@ export const listUsers = async (req, res) => {
     }
 
     const users = await User.find(query)
-      .select("username email createdAt")
+      .select("username email avatar createdAt")
       .sort({ username: 1 });
 
     res.status(200).json(users);

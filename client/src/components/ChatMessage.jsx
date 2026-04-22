@@ -1,4 +1,5 @@
 import React from "react";
+import Avatar from "./Avatar";
 
 const formatTime = (value) => {
   if (!value) return "";
@@ -12,31 +13,70 @@ const formatTime = (value) => {
 export default function ChatMessage({
   message,
   isOwnMessage,
-  statusLabel = "",
+  status = "",
+  avatar = "",
+  senderName = "",
+  showSenderName = false,
 }) {
+  const statusIcon = (() => {
+    if (!isOwnMessage || !status) {
+      return null;
+    }
+
+    const strokeClassName =
+      status === "seen" ? "stroke-sky-400" : "stroke-slate-500";
+    const doubleCheck = status === "seen" || status === "delivered";
+
+    return (
+      <svg
+        viewBox="0 0 20 20"
+        className={`h-4 w-4 ${strokeClassName}`}
+        fill="none"
+        strokeWidth="1.8"
+        aria-hidden="true"
+      >
+        <path d="M2.75 10.25 6.5 14l5.25-7" />
+        {doubleCheck && <path d="M8.75 10.25 12.5 14l5.25-7" />}
+      </svg>
+    );
+  })();
+
   return (
-    <div className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex items-end gap-2 ${isOwnMessage ? "justify-end" : "justify-start"}`}
+    >
+      {!isOwnMessage && (
+        <Avatar
+          name={senderName || message.sender}
+          src={avatar}
+          size="sm"
+          className="mb-1"
+        />
+      )}
+
       <div
         className={`max-w-[82%] rounded-[24px] px-4 py-3 shadow-soft ${
           isOwnMessage
-            ? "rounded-br-md bg-brand-ink text-white"
-            : "rounded-bl-md border border-white/70 bg-white/90 text-slate-800"
+            ? "rounded-br-md bg-[#d9fdd3] text-slate-900"
+            : "rounded-bl-md border border-[#e6dfd6] bg-white text-slate-800"
         }`}
       >
-        {!isOwnMessage && (
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-            {message.sender}
+        {!isOwnMessage && showSenderName && (
+          <p className="mb-1 text-xs font-semibold text-brand-teal">
+            {senderName || message.sender}
           </p>
         )}
+
         <p className="text-sm leading-relaxed break-words">{message.message}</p>
-        <p
-          className={`mt-2 text-[11px] ${
-            isOwnMessage ? "text-white/55" : "text-slate-400"
+
+        <div
+          className={`mt-2 flex items-center justify-end gap-1 text-[11px] ${
+            isOwnMessage ? "text-slate-500" : "text-slate-400"
           }`}
         >
-          {formatTime(message.createdAt)}
-          {statusLabel ? ` · ${statusLabel}` : ""}
-        </p>
+          <span>{formatTime(message.createdAt)}</span>
+          {statusIcon}
+        </div>
       </div>
     </div>
   );

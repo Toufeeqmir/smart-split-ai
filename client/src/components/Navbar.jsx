@@ -1,52 +1,151 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import api from "../services/api";
+import Avatar from "./Avatar";
+import { fileToProfileDataUrl } from "../utils/profileImage";
 
 export default function Navbar({ isAuthPage = false }) {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const location = useLocation();
+  const chatMatch = location.pathname.match(/^\/chat\/([^/]+)$/);
+  const conversationId = chatMatch ? chatMatch[1] : "";
+  const [user, setUser] = useState(
+    () => JSON.parse(localStorage.getItem("user") || "null")
+  );
+  const [chatPartner, setChatPartner] = useState(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
+
+  useEffect(() => {
+    const syncUser = () => {
+      setUser(JSON.parse(localStorage.getItem("user") || "null"));
+    };
+
+    syncUser();
+    window.addEventListener("user-updated", syncUser);
+
+    return () => {
+      window.removeEventListener("user-updated", syncUser);
+    };
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const isOnChatPage = Boolean(conversationId);
+
+    if (!isOnChatPage) {
+      setChatPartner(null);
+      return;
+    }
+
+    const fetchChatPartner = async () => {
+      try {
+        const res = await api.get(`/conversations/${conversationId}`);
+        setChatPartner(res.data);
+      } catch (err) {
+        console.error("Error fetching chat partner for navbar:", err);
+      }
+    };
+
+    fetchChatPartner();
+  }, [conversationId, location.pathname]);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      const avatar = await fileToProfileDataUrl(file);
+      const { data } = await api.patch("/auth/me", { avatar });
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      window.dispatchEvent(new Event("user-updated"));
+    } catch (err) {
+      console.error("Avatar update failed:", err);
+    } finally {
+      setIsUploadingAvatar(false);
+      e.target.value = "";
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/50 bg-white/65 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-ink text-sm font-semibold tracking-[0.22em] text-white shadow-soft">
+    <header className="sticky top-0 z-50 h-20 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+      <div className="mx-auto grid h-full max-w-[1440px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex shrink-0 items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-xs font-bold tracking-widest text-white">
             SS
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-lg font-semibold text-slate-900">
-              SmartSplit <span className="text-brand-teal">AI</span>
-            </p>
-            <p className="hidden text-sm text-slate-500 sm:block">
-              Collaborative expense tracking with cleaner conversations
-            </p>
-          </div>
+          <p className="hidden text-lg font-bold text-slate-900 lg:block">
+            SmartSplit <span className="text-teal-600">AI</span>
+          </p>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {user?.username && (
-            <div className="hidden rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-right shadow-sm md:block">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                Active user
-              </p>
-              <p className="text-sm font-semibold text-slate-800">
-                {user.username}
+        {chatPartner && !isAuthPage ? (
+          <div className="flex min-w-0 items-center justify-center gap-3 animate-fade-up">
+            <Avatar
+              name={chatPartner.displayName || "Chat"}
+              src={chatPartner.avatar || chatPartner.otherMember?.avatar}
+            />
+            <div className="min-w-0 text-center">
+              <h2 className="truncate text-sm font-bold leading-tight text-slate-800 sm:text-base">
+                {chatPartner.displayName || "Chat"}
+              </h2>
+              <p className="truncate text-[11px] font-medium leading-tight text-brand-teal">
+                {chatPartner.isGroup
+                  ? `${chatPartner.members?.length || 0} members`
+                  : chatPartner.otherMember?.username
+                    ? `@${chatPartner.otherMember.username}`
+                    : "Private chat"}
               </p>
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
 
-          {!isAuthPage && (
-            <Link
-              to="/conversations"
-              className="hidden rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-teal/40 hover:text-brand-teal md:inline-flex"
-            >
-              Messages
-            </Link>
+        <div className="flex items-center gap-3">
+          {user?.username && !isAuthPage && (
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 pl-2 pr-2 py-2">
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="rounded-full transition hover:scale-[1.03] disabled:opacity-60"
+                title="Upload profile photo"
+              >
+                <Avatar name={user.username} src={user.avatar} size="sm" />
+              </button>
+              <div className="min-w-0">
+                <p className="max-w-[120px] truncate text-xs font-semibold text-slate-700">
+                  {user.username}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="text-[10px] font-medium text-brand-teal disabled:opacity-60"
+                >
+                  {isUploadingAvatar ? "Updating..." : "Change photo"}
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
           )}
 
           <Link
             to={user ? "/" : "/login"}
-            className="inline-flex rounded-2xl bg-brand-ink px-4 py-2.5 text-sm font-medium text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-brand-slate"
+            className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-medium text-white shadow-md transition-all hover:bg-slate-800"
           >
-            {user ? (isAuthPage ? "Back to app" : "Dashboard") : "Login"}
+            {user ? "Dashboard" : "Login"}
           </Link>
         </div>
       </div>

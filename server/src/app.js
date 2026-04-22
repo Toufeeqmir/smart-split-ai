@@ -12,7 +12,7 @@ import { errorHandler } from './middlewares/errorMiddleware.js';
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 
 app.use('/api/auth',     authRoutes);
 app.use('/api/expenses', expenseRoutes);

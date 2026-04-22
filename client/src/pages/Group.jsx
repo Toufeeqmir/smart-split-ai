@@ -10,6 +10,10 @@ export default function Group() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
+  // 🟢 ADDED: users + selected members
+  const [users, setUsers] = useState([]);        // ✅ NEW
+  const [selected, setSelected] = useState([]);  // ✅ NEW
+
   const navigate = useNavigate();
   const user = useMemo(
     () => JSON.parse(localStorage.getItem("user") || "null"),
@@ -30,8 +34,28 @@ export default function Group() {
       }
     };
 
+    // 🟢 ADDED: fetch users
+    const fetchUsers = async () => {
+      try {
+        const { data } = await api.get("/auth/users"); // ✅ NEW
+        setUsers(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     fetchGroups();
+    fetchUsers(); // ✅ NEW
   }, []);
+
+  // 🟢 ADDED: toggle selection
+  const toggleUser = (username) => {
+    setSelected((prev) =>
+      prev.includes(username)
+        ? prev.filter((u) => u !== username)
+        : [...prev, username]
+    );
+  };
 
   const createGroup = async () => {
     const trimmedName = name.trim();
@@ -52,11 +76,12 @@ export default function Group() {
 
       const { data } = await api.post("/conversations/group", {
         name: trimmedName,
-        members: [user.username],
+        members: selected, // 🔴 UPDATED (was [user.username])
       });
 
       setGroups((prev) => [data, ...prev]);
       setName("");
+      setSelected([]); // ✅ reset selection
       navigate(`/chat/${data._id}`);
     } catch (err) {
       setError(
@@ -89,9 +114,6 @@ export default function Group() {
             <p className="mt-3 text-2xl font-semibold">
               {user?.username || "Guest"}
             </p>
-            <p className="mt-3 text-sm text-white/72">
-              New groups will be created under your account and opened right away.
-            </p>
           </div>
         </div>
       </section>
@@ -102,9 +124,6 @@ export default function Group() {
           <h3 className="mt-2 text-2xl font-semibold text-slate-950">
             Create a conversation
           </h3>
-          <p className="mt-2 text-sm text-slate-500">
-            Name the group and start chatting right away.
-          </p>
 
           <div className="mt-6 space-y-4">
             <input
@@ -113,63 +132,58 @@ export default function Group() {
               placeholder="Group name"
               className="form-input"
             />
+
+            {/* 🟢 ADDED: User selection UI */}
+            <div>
+              <p className="text-sm font-semibold mb-2">Select Members</p>
+
+              {users
+                .filter((u) => u.username !== user.username)
+                .map((u) => (
+                  <div key={u._id}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        onChange={() => toggleUser(u.username)}
+                      />
+                      {u.username}
+                    </label>
+                  </div>
+                ))}
+            </div>
+
             <button
               onClick={createGroup}
               disabled={creating}
-              className="inline-flex w-full items-center justify-center rounded-2xl bg-brand-ink px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-brand-slate disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-brand-ink px-4 py-3 text-sm font-semibold text-white"
             >
               {creating ? "Creating..." : "Create Group"}
             </button>
           </div>
 
           {error && (
-            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
+            <div className="mt-4 text-red-500 text-sm">{error}</div>
           )}
         </section>
 
+        {/* EXISTING GROUPS */}
         <section className="space-y-4">
-          <div>
-            <p className="soft-label">Existing rooms</p>
-            <h3 className="mt-2 text-2xl font-semibold text-slate-950">
-              Your groups
-            </h3>
-          </div>
+          <h3 className="text-xl font-semibold">Your groups</h3>
 
           {loading ? (
-            <div className="panel px-6 py-8 text-sm text-slate-500">
-              Loading groups...
-            </div>
+            <div>Loading groups...</div>
           ) : groups.length === 0 ? (
-            <div className="panel px-6 py-8 text-sm text-slate-500">
-              No groups yet. Create your first one above.
-            </div>
+            <div>No groups yet</div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div>
               {groups.map((group) => (
-                <button
+                <div
                   key={group._id}
                   onClick={() => navigate(`/chat/${group._id}`)}
-                  className="panel p-5 text-left transition hover:-translate-y-0.5"
+                  className="border p-3 mb-2 cursor-pointer"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="soft-label">Group room</p>
-                      <p className="mt-2 text-xl font-semibold text-slate-900">
-                        {group.name}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-brand-teal/10 px-3 py-1 text-xs font-semibold text-brand-teal">
-                      {group.members?.length || 0} member
-                      {group.members?.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  <p className="mt-4 text-sm text-slate-500">
-                    Open this room to continue planning, tracking, and settling
-                    shared expenses.
-                  </p>
-                </button>
+                  <strong>{group.name}</strong> ({group.members.length} members)
+                </div>
               ))}
             </div>
           )}

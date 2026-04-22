@@ -44,7 +44,7 @@ const removeOnlineUser = (username, socketId) => {
 const isUserOnline = (username) =>
   Boolean(username && onlineUsers.has(username) && onlineUsers.get(username).size > 0);
 
-const getOnlineMembers = (conversation) =>
+export const getOnlineMembers = (conversation) =>
   conversation.members.filter((member) => isUserOnline(member));
 
 const markConversationMessagesSeen = async (io, conversationId, username) => {
@@ -198,7 +198,9 @@ export const registerChatSocket = (io) => {
           seenBy: [sender],
         });
 
-        await Conversation.findByIdAndUpdate(conversationId, {});
+        await Conversation.findByIdAndUpdate(conversationId, {
+          $set: { updatedAt: new Date() },
+        });
 
         io.to(conversationId).emit("receive_message", newMessage);
       } catch (err) {
