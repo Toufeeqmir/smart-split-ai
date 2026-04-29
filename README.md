@@ -1,315 +1,269 @@
-# SmartSplit AI
+# SmartSplit
 
-An AI-powered roommate expense tracker with real-time group chat. Easily split expenses, track balances, and chat with your roommates in real-time.
+SmartSplit is a full-stack shared expense tracker with private and group chat. It helps roommates, friends, and small groups record expenses, split bills fairly, track balances, and coordinate in real time from the same app.
 
-## 🚀 Features
+## Features
 
-- **User Authentication**: Secure login and registration with JWT
-- **Expense Management**: Add, view, and manage shared expenses
-- **AI-Powered Parsing**: Natural language parsing of expenses using OpenAI
-- **Smart Splitting**: Automatically calculate fair expense splits
-- **Group Management**: Create and manage roommate groups
-- **Real-Time Chat**: Communicate with roommates using WebSocket
-- **Balance Tracking**: View who owes whom and settle balances
-- **Dashboard**: Visual summary of expenses and balances
+- Secure user registration and login with JWT authentication
+- Shared expense creation, editing, and deletion
+- Equal split tracking across selected members
+- Balance calculation and simplified settlement view
+- Private one-to-one conversations
+- Group conversations
+- Real-time messaging with Socket.IO
+- Seen status for messages
+- Online presence indicators
+- Profile photo upload and avatar display
+- Dashboard filters for expenses by member, status, and sort order
 
-## 📋 Tech Stack
+## Tech Stack
 
 ### Frontend
-- **React 18** - UI library
-- **Redux Toolkit** - State management
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Socket.io Client** - Real-time communication
-- **React Router** - Routing
-- **Axios** - HTTP client
+
+- React 18
+- React Router
+- Tailwind CSS
+- Axios
+- Socket.IO Client
+- Redux Toolkit
+- Vite
 
 ### Backend
-- **Node.js + Express** - Web framework
-- **MongoDB + Mongoose** - Database
-- **Socket.io** - Real-time WebSocket communication
-- **JWT** - Authentication
-- **Bcrypt** - Password hashing
-- **Nodemon** - Development auto-reload
 
-### AI Service
-- **Node.js + Express** - Microservice
-- **OpenAI API** - AI-powered text parsing
-- **CORS** - Cross-origin support
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- JWT
+- bcrypt
+- Socket.IO
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```text
 smart-split-ai/
-├── client/              # React frontend
+├── client/
 │   ├── src/
-│   │   ├── components/  # Reusable UI components
-│   │   ├── features/    # Feature-based modules (auth, chat, expenses)
-│   │   ├── pages/       # Page components
-│   │   ├── services/    # API and service integrations
-│   │   ├── hooks/       # Custom React hooks
-│   │   ├── utils/       # Utility functions
-│   │   └── App.jsx      # Main app component
+│   │   ├── components/
+│   │   ├── features/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   └── main.jsx
 │   └── package.json
-├── server/              # Express backend
+├── server/
 │   ├── src/
-│   │   ├── controllers/ # Route handlers
-│   │   ├── models/      # Mongoose schemas
-│   │   ├── routes/      # API routes
-│   │   ├── services/    # Business logic
-│   │   ├── sockets/     # WebSocket handlers
-│   │   ├── middlewares/ # Express middlewares
-│   │   ├── config/      # Configuration
-│   │   ├── utils/       # Utility functions
-│   │   ├── app.js       # Express app setup
-│   │   └── server.js    # Server entry point
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── sockets/
+│   │   ├── utils/
+│   │   ├── app.js
+│   │   └── server.js
 │   └── package.json
-└── ai-service/          # AI microservice
-    ├── src/
-    │   ├── controller.js # Route handlers
-    │   ├── routes.js     # API routes
-    │   ├── services/     # LLM and parsing logic
-    │   ├── prompts/      # AI prompts
-    │   ├── index.js      # Service entry point
-    │   └── ...
-    └── package.json
+└── README.md
 ```
 
-## 🏁 Quick Start
+## Core User Flow
 
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- MongoDB (local or Atlas)
-- OpenAI API key
+1. A user registers or logs in.
+2. The frontend stores the JWT token in localStorage.
+3. Protected API calls include the token in the Authorization header.
+4. Users create expenses and split them with selected members.
+5. The dashboard shows expense history and settlement information.
+6. Users can open private chats or create group conversations.
+7. Messages are delivered in real time with presence and seen updates.
 
-### Installation & Setup
+## Main Pages
 
-#### 1. Clone the repository
+- `Dashboard`
+  Add and manage expenses, review summary cards, and filter the ledger.
+- `Conversations`
+  Search users, start a private chat, and browse recent conversations.
+- `Chat`
+  Send messages, view the active chat partner or group, and track seen status.
+- `Group`
+  Create and open group conversations.
+- `Login` and `Register`
+  Handle authentication and profile setup.
+
+## Main API Routes
+
+### Auth
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
+- `GET /api/auth/users`
+
+### Expenses
+
+- `POST /api/expenses`
+- `GET /api/expenses`
+- `GET /api/expenses/balances`
+- `PUT /api/expenses/:id`
+- `DELETE /api/expenses/:id`
+
+### Groups
+
+- `POST /api/groups`
+- `GET /api/groups`
+
+### Conversations
+
+- `POST /api/conversations/private`
+- `POST /api/conversations/group`
+- `GET /api/conversations`
+- `GET /api/conversations/:id`
+
+### Chat
+
+- `POST /api/chat`
+- `GET /api/chat`
+- `GET /api/chat/:conversationId`
+- `POST /api/chat/:conversationId/seen`
+
+## Environment Variables
+
+### Root
+
 ```bash
-git clone <repository-url>
-cd smart-split-ai
+NODE_ENV=development
 ```
 
-#### 2. Set up environment variables
+### Server
 
-**Server (.env)**
+Create `server/.env`:
+
 ```bash
-cd server
-# Create .env file
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/smart-split-ai
-# or use MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/smart-split-ai
+MONGODB_URI=mongodb://localhost:27017/smart-split
 JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
 ```
 
-**AI Service (.env)**
+### Client
+
+Create `client/.env.local` if needed:
+
 ```bash
-cd ai-service
-# Create .env file
-PORT=6000
-OPENAI_API_KEY=your_openai_api_key
+VITE_API_URL=http://localhost:5000/api
 ```
 
-**Client (.env.local)** - Optional (frontend)
-```bash
-cd client
-VITE_API_URL=http://localhost:5000
-VITE_AI_SERVICE_URL=http://localhost:6000
-```
+## Local Setup
 
-#### 3. Install dependencies and start services
+### 1. Install dependencies
 
-**Terminal 1 - Start the backend server:**
 ```bash
 cd server
 npm install
-npm run dev
-# Server runs on http://localhost:5000
 ```
 
-**Terminal 2 - Start the AI service:**
-```bash
-cd ai-service
-npm install
-npm run dev
-# AI service runs on http://localhost:6000
-```
-
-**Terminal 3 - Start the frontend:**
 ```bash
 cd client
 npm install
+```
+
+### 2. Start the backend
+
+```bash
+cd server
 npm run dev
-# Client runs on http://localhost:5173
 ```
 
-The application should now be accessible at `http://localhost:5173`
-
-## 📚 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/logout` - Logout user
-
-### Expenses
-- `GET /api/expenses` - Get all expenses
-- `POST /api/expenses` - Create new expense
-- `DELETE /api/expenses/:id` - Delete expense
-
-### Groups
-- `GET /api/groups` - Get all groups
-- `POST /api/groups` - Create new group
-- `PUT /api/groups/:id` - Update group
-- `DELETE /api/groups/:id` - Delete group
-- `POST /api/groups/:id/members` - Add member to group
-
-### Chat
-- `GET /api/conversations` - Get all conversations
-- `POST /api/conversations` - Create new conversation
-- `GET /api/messages/:conversationId` - Get messages
-
-### AI Service
-- `POST /api/parse` - Parse expense from natural language
-- `POST /api/chat` - Chat with AI assistant
-
-## 🔧 Development
-
-### Running in Development Mode
-Each service supports development mode with auto-reload:
+### 3. Start the frontend
 
 ```bash
-# Backend
-cd server && npm run dev
-
-# AI Service
-cd ai-service && npm run dev
-
-# Frontend
-cd client && npm run dev
+cd client
+npm run dev
 ```
 
-### Building for Production
+Frontend runs on:
+
+- `http://localhost:5173`
+
+Backend runs on:
+
+- `http://localhost:5000`
+
+## Production Build
+
+Frontend build:
+
 ```bash
-# Frontend
-cd client && npm run build
-# Output: dist/
-
-# Backend and AI service are ready for production as-is
+cd client
+npm run build
 ```
 
-## 🔐 Authentication
-
-The application uses JWT (JSON Web Tokens) for authentication:
-- Users register and create an account
-- Login returns a JWT token stored in localStorage
-- Token is sent with each API request in Authorization header
-- Socket.io connections are authenticated via the token
-
-## 💾 Database Models
+## Database Models
 
 ### User
-- username, email, password (hashed)
-- createdAt, updatedAt
 
-### Group
-- name, description, members
-- expenses array, createdBy
+- `username`
+- `email`
+- `password`
+- `avatar`
 
 ### Expense
-- description, amount, paidBy, splitAmong
-- group reference
-- date, createdAt
+
+- `description`
+- `amount`
+- `paidBy`
+- `createdBy`
+- `splitAmong`
+- `settled`
+- `groupId`
+
+### Group
+
+- `name`
+- `members`
+- `createdBy`
 
 ### Conversation
-- participants, group
-- messages array
-- createdAt
+
+- `members`
+- `isGroup`
+- `name`
 
 ### Message
-- content, sender, conversation
-- timestamp
 
-## 🤖 AI Features
+- `conversationId`
+- `sender`
+- `message`
+- `seenBy`
 
-The AI service uses OpenAI's API to:
-- **Parse expenses** from natural language descriptions (e.g., "spent $50 on groceries split 3 ways")
-- **Chat assistance** for help with expense management
-- **Smart suggestions** for splitting logic
+## Real-Time Chat
 
-## 🔄 Real-Time Updates
+Socket.IO is used for:
 
-WebSocket (Socket.io) is used for:
-- Real-time message delivery in group chat
-- Live expense updates across all connected clients
-- User presence notifications
+- user presence tracking
+- joining conversation rooms
+- receiving messages instantly
+- seen status updates
+- online status refresh inside chat views
 
-## 🐛 Troubleshooting
+## Notes
 
-### Server fails to start
-- Check if MongoDB is running
-- Verify MONGODB_URI in .env
-- Check PORT is not already in use
+- Expense calculations are deterministic and handled on the backend.
+- Chat visibility is restricted to conversation members.
+- Expense editing and deletion are limited to the creator or payer.
+- Profile photos are stored as image data strings and shown throughout the UI.
 
-### Frontend can't connect to API
-- Verify server is running on port 5000
-- Check VITE_API_URL in client configuration
-- Clear browser cache and localStorage
+## Interview Summary
 
-### AI service errors
-- Verify OpenAI API key is valid
-- Check API key has required permissions
-- Check rate limits haven't been exceeded
+SmartSplit is a full-stack expense-sharing and communication platform that combines:
 
-## 📝 Environment Variables Checklist
+- JWT-based authentication
+- MongoDB-backed expense management
+- balance and settlement logic
+- private and group real-time chat
+- profile personalization with avatars
 
-```
-Server:
-✓ PORT
-✓ MONGODB_URI
-✓ JWT_SECRET
-✓ CLIENT_URL
+In one line:
 
-AI Service:
-✓ PORT
-✓ OPENAI_API_KEY
-
-Client:
-✓ VITE_API_URL (optional)
-✓ VITE_AI_SERVICE_URL (optional)
-```
-
-## 🚀 Deployment
-
-### Deploying to Heroku/Railway/Render
-1. Push code to Git repository
-2. Set environment variables in hosting platform
-3. Deploy backend server
-4. Deploy AI service
-5. Build and deploy frontend (to Vercel, Netlify, etc.)
-
-### Docker Support (Optional)
-Create Dockerfile for each service for containerized deployment.
-
-## 👥 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push -u origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 💬 Support
-
-For issues and questions, please open an issue on the repository.
-
----
-
-**Happy expense splitting! 💰**
+**SmartSplit is a real-time shared expense and chat app for groups, built with React, Express, MongoDB, and Socket.IO.**
