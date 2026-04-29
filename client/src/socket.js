@@ -1,3 +1,5 @@
+// Brings in the library to create a real-time connection(WebSockt under the hood)
+
 import { io } from "socket.io-client";
 
 const socketBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5001").replace(

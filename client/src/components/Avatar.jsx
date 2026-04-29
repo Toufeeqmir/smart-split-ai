@@ -1,5 +1,7 @@
 import React from "react";
 
+// For uploading the profile 
+
 export const getInitials = (name = "") =>
   name
     .split(" ")

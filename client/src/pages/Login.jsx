@@ -70,7 +70,7 @@ export default function Login() {
           <p className="soft-label">Account access</p>
           <h3 className="mt-2 text-3xl font-semibold text-slate-950">Login</h3>
           <p className="mt-2 text-sm text-slate-500">
-            Sign in to continue to SmartSplit AI.
+            Sign in to continue to SmartSplit.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">

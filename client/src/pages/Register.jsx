@@ -67,7 +67,7 @@ export default function Register() {
           <p className="soft-label">Create your workspace</p>
           <h2 className="mt-2 text-3xl font-semibold text-slate-950">Register</h2>
           <p className="mt-2 text-sm text-slate-500">
-            Create your SmartSplit AI account.
+            Create your SmartSplit account.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">

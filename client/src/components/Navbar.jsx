@@ -6,7 +6,9 @@ import { fileToProfileDataUrl } from "../utils/profileImage";
 
 export default function Navbar({ isAuthPage = false }) {
   const location = useLocation();
-  const chatMatch = location.pathname.match(/^\/chat\/([^/]+)$/);
+
+  //Extracts chat ID from URL
+  const chatMatch = location.pathname.match(/^\/chat\/([^/]+)$/); //regular expresion to extrac url path
   const conversationId = chatMatch ? chatMatch[1] : "";
   const [user, setUser] = useState(
     () => JSON.parse(localStorage.getItem("user") || "null")
@@ -79,7 +81,7 @@ export default function Navbar({ isAuthPage = false }) {
             SS
           </div>
           <p className="hidden text-lg font-bold text-slate-900 lg:block">
-            SmartSplit <span className="text-teal-600">AI</span>
+            SmartSplit
           </p>
         </Link>
 
