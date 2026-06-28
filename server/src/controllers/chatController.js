@@ -6,6 +6,7 @@ const getConversationIdFromRequest = (req) =>
   req.params.conversationId || req.query.conversationId || req.body.conversationId;
 
 const markMessagesSeenForUser = async (conversationId, username) => {
+  // find unseen messages
   const unseenMessages = await Message.find({
     conversationId,
     sender: { $ne: username },

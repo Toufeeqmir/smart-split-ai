@@ -3,10 +3,12 @@ import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { getOnlineMembers } from "../sockets/chatSocket.js";
 
+// it builds converstaion objetcs enriched with user info + last message + onlince status  whole conversationController
+
 const formatConversation = async (conversation, currentUsername) => {
   const plainConversation =
     typeof conversation.toObject === "function"
-      ? conversation.toObject()
+      ? conversation.toObject() //convert MongoDB object -> plain JS object
       : conversation;
 
   const members = await User.find({

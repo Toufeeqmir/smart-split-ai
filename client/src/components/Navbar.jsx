@@ -13,10 +13,13 @@ export default function Navbar({ isAuthPage = false }) {
   const [user, setUser] = useState(
     () => JSON.parse(localStorage.getItem("user") || "null")
   );
+  
+  // State Management 
   const [chatPartner, setChatPartner] = useState(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
 
+  
   useEffect(() => {
     const syncUser = () => {
       setUser(JSON.parse(localStorage.getItem("user") || "null"));
@@ -37,6 +40,8 @@ export default function Navbar({ isAuthPage = false }) {
       setChatPartner(null);
       return;
     }
+
+    //  Fetch chat partner (api call)
 
     const fetchChatPartner = async () => {
       try {

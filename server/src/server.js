@@ -1,3 +1,4 @@
+import "./loadEnv.js";
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import app from './app.js';
@@ -5,6 +6,10 @@ import { connectDB } from './config/db.js';
 import { registerChatSocket } from './sockets/chatSocket.js';
 import dotenv from "dotenv";
 dotenv.config();
+
+ console.log("SMTP_HOST:", process.env.SMTP_HOST);
+ console.log("SMPT_USER:", process.env.SMTP_USER);
+ console.log("SMTP_PASS set:", !!process.env.SMTP_PASS);
 
  const PORT = process.env.PORT || 5000;
 const allowedOrigins = [

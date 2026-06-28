@@ -41,24 +41,15 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const { data } = await api.post("/auth/register", formData);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          _id: data._id,
-          username: data.username,
-          email: data.email,
-          avatar: data.avatar,
-        })
-      );
-      navigate("/");
+      await api.post("/auth/register", formData);
+      navigate("/verify-otp", { state: { email: formData.email } });
+
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      setError(err.response?.data?.message || "Registration failed. Please try agian later");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-160px)] max-w-5xl items-center">

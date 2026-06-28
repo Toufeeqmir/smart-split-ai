@@ -10,6 +10,7 @@ const formatTime = (value) => {
   });
 };
 
+  //  Props
 export default function ChatMessage({
   message,
   isOwnMessage,
@@ -35,6 +36,8 @@ export default function ChatMessage({
         strokeWidth="1.8"
         aria-hidden="true"
       >
+
+         {/* forming tick shap */}
         <path d="M2.75 10.25 6.5 14l5.25-7" />
         {doubleCheck && <path d="M8.75 10.25 12.5 14l5.25-7" />}
       </svg>

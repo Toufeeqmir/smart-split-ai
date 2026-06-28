@@ -24,6 +24,12 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/");
     } catch (err) {
+
+       //unverified accounts get redirected to the OTP screen instead of just  shown an error
+        if(err.response?.status === 403 && err.response?.data?.notVerified){
+           navigate("/verify-otp", {state: {email: formData.email}});
+           return;
+        }
       setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);

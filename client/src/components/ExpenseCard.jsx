@@ -2,14 +2,19 @@ import React from "react";
 
 const formatCurrency = (amount) => `Rs ${Number(amount || 0).toFixed(2)}`;
 
+// props
 export default function ExpenseCard({
   expense,
   currentUser,
   onEdit,
   onDelete,
 }) {
+
+  // Permisstion-Logic 
   const canManage =
     expense.createdBy === currentUser || expense.paidBy === currentUser;
+
+    // perperson share : using optional chaning (like ? : ) to avoid crashing splitamong is undefined
   const perPersonShare =
     expense.splitAmong?.length > 0
       ? Number(expense.amount || 0) / expense.splitAmong.length

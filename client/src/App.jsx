@@ -33,14 +33,15 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Conversations from "./pages/Conversations";
 import Group from "./pages/Group";
+import VerifyOtp  from "./pages/Verifyotp";
 
 function AppLayout() {
   const location = useLocation();
-  const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/register";
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-
-  useEffect(() => {
+  const isAuthPage =location.pathname === "/login" || 
+  location.pathname === "/register" ||
+  location.pathname === "/verify-otp";
+   const user = JSON.parse(localStorage.getItem("user") || "null");
+ useEffect(() => {
     if (!user?.username) {
       return undefined;
     }
@@ -67,8 +68,10 @@ function AppLayout() {
       <Route path="/chat/:id" element={<Chat />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path = "/verify-otp" element={<VerifyOtp/>}/>
       <Route path="/conversations" element={<Conversations />} />
       <Route path="/group" element={<Group />} />
+      
     </Routes>
   );
 
