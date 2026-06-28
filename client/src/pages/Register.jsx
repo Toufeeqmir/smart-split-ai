@@ -122,8 +122,11 @@ export default function Register() {
                 onChange={handleChange}
                 required
                 className="form-input"
-                placeholder="you@example.com"
+                placeholder="Enter your registered email"
               />
+              <p className="text-xs text-slate-500">
+                 Use an email you can access - we'll send a verificcation code here.
+              </p>
             </div>
 
             <div className="space-y-2">

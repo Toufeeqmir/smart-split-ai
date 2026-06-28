@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 
      try{
          await transporter.sendMail({
-             from: `"SmarSplit AI" <${process.env.SMTP_USER}`,
+             from: `"SmarSplit AI" <${process.env.SMTP_USER}>`,
              to, 
              subject,
              text,
