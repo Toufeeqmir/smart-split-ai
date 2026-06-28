@@ -5,6 +5,7 @@ SmartSplit is a full-stack shared expense tracker with private and group chat. I
 ## Features
 
 - Secure user registration and login with JWT authentication
+- Email verification via OTP sent through Nodemailer
 - Shared expense creation, editing, and deletion
 - Equal split tracking across selected members
 - Balance calculation and simplified settlement view
@@ -36,6 +37,7 @@ SmartSplit is a full-stack shared expense tracker with private and group chat. I
 - Mongoose
 - JWT
 - bcrypt
+- Nodemailer
 - Socket.IO
 
 ## Project Structure
@@ -69,13 +71,15 @@ smart-split-ai/
 
 ## Core User Flow
 
-1. A user registers or logs in.
-2. The frontend stores the JWT token in localStorage.
-3. Protected API calls include the token in the Authorization header.
-4. Users create expenses and split them with selected members.
-5. The dashboard shows expense history and settlement information.
-6. Users can open private chats or create group conversations.
-7. Messages are delivered in real time with presence and seen updates.
+1. A user registers, and a 6-digit OTP is emailed to them via Nodemailer.
+2. The user enters the OTP on the verification screen to activate their account.
+3. Once verified, the user can log in; unverified accounts are blocked from logging in until they complete verification.
+4. The frontend stores the JWT token in localStorage.
+5. Protected API calls include the token in the Authorization header.
+6. Users create expenses and split them with selected members.
+7. The dashboard shows expense history and settlement information.
+8. Users can open private chats or create group conversations.
+9. Messages are delivered in real time with presence and seen updates.
 
 ## Main Pages
 
@@ -89,12 +93,16 @@ smart-split-ai/
   Create and open group conversations.
 - `Login` and `Register`
   Handle authentication and profile setup.
+- `VerifyOtp`
+  Confirm the OTP sent to the user's email and resend it if needed.
 
 ## Main API Routes
 
 ### Auth
 
 - `POST /api/auth/register`
+- `POST /api/auth/verify-otp`
+- `POST /api/auth/resend-otp`
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `PATCH /api/auth/me`
@@ -144,7 +152,13 @@ PORT=5000
 MONGODB_URI=mongodb://localhost:27017/smart-split
 JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_gmail_address@gmail.com
+SMTP_PASS=your_gmail_app_password
 ```
+
+`SMTP_PASS` must be a Gmail App Password (requires 2-Step Verification enabled on the account), not the regular account password.
 
 ### Client
 
@@ -207,6 +221,9 @@ npm run build
 - `email`
 - `password`
 - `avatar`
+- `isVerified`
+- `otp`
+- `otpExpiry`
 
 ### Expense
 
@@ -253,12 +270,14 @@ Socket.IO is used for:
 - Chat visibility is restricted to conversation members.
 - Expense editing and deletion are limited to the creator or payer.
 - Profile photos are stored as image data strings and shown throughout the UI.
+- OTPs expire 5 minutes after being issued; expired or incorrect codes are rejected with a clear error message.
+- If the verification email fails to send during registration, the partially created account is rolled back so the same email can be used to register again.
 
 ## Interview Summary
 
 SmartSplit is a full-stack expense-sharing and communication platform that combines:
 
-- JWT-based authentication
+- JWT-based authentication with email-verified onboarding
 - MongoDB-backed expense management
 - balance and settlement logic
 - private and group real-time chat
@@ -266,4 +285,4 @@ SmartSplit is a full-stack expense-sharing and communication platform that combi
 
 In one line:
 
-**SmartSplit is a real-time shared expense and chat app for groups, built with React, Express, MongoDB, and Socket.IO.**
+**SmartSplit is a real-time shared expense and chat app for groups, built with React, Express, MongoDB, and Socket.IO, with email-based OTP verification on signup.**
